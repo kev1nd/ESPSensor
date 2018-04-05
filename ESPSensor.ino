@@ -14,8 +14,8 @@ const char ssid[] = "ssid";
 const char pass[] = "password";
 #endif
 
-int pinDHT11 = 2;  //GPIO2 is pin 2, GPIO0 is pin 1
-SimpleDHT11 dht11;
+int pinDHT22 = 2;  //GPIO2 is pin 2, GPIO0 is pin 1
+SimpleDHT22 dht22;
 
 int inputLevel = 2;
 unsigned long lastMillis = 0;
@@ -45,14 +45,15 @@ void connect() {
 
 void sendReadings() {
   Serial.println("Sending readings");
-  byte temperature = 0;
-  byte humidity = 0;
+  float temperature = 0;
+  float humidity = 0;
   byte data[40] = {0};
 
   // virtual int read2(int pin, float* ptemperature, float* phumidity, byte pdata[40]) = 0;
 
-  if (dht11.read(pinDHT11, &temperature, &humidity, data)) {
-    Serial.println("Read DHT11 failed");
+  int err = SimpleDHTErrSuccess;
+  if ((err = dht22.read2(pinDHT22, &temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+    Serial.print("Read DHT22 failed, err="); Serial.println(err); delay(2000);
     return;
   }
   Serial.print("Temperature:");
@@ -60,17 +61,14 @@ void sendReadings() {
   Serial.print("  Humidity:");
   Serial.println(humidity);
 
-
-
-
   char mqttPayload[100];
-  sprintf(mqttPayload, "{\"temp\":%i,\"humid\":%i}", temperature, humidity);
+  sprintf(mqttPayload, "{\"temp\":%.2f,\"humid\":%.2f}", temperature, humidity);
   client.publish("arduino/esp1/data", mqttPayload);
 }
 
 void messageReceived(String &topic, String &payload) {
-//  payload.replace("\n","");
-//  payload.replace("\r","");
+  //  payload.replace("\n","");
+  //  payload.replace("\r","");
   // Serial.println("{\"channel\":\"" + topic + "\",\"payload\":" + payload + "}");
   Serial.println(topic);
   Serial.println(payload);
