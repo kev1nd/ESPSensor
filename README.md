@@ -24,3 +24,14 @@ const char pass[] = "password";
 ## MQTT Comms
 The measurements are published using the MQTT protocol, to AWS IoT. Since the Arduino IDE doesn't support TLS1.2, it can't connect directly to the AWS IoT. To work around this, I've used an old Raspberry Pi with Mosquito software installed. I'll write up a separate instruction for installing the Raspberry Pi, but the trick to getting it working was to install a later version of Mosquito than comes in as standard with the installer.
 
+## Setting up the Raspberry Pi as an MQTT Bridge
+Here are some useful references sites for setting up the Raspberry Pi to act as an MQTT bridge
+[Setting up the Thing](https://docs.aws.amazon.com/iot/latest/developerguide/iot-sdk-setup.html)
+https://aws.amazon.com/blogs/iot/how-to-bridge-mosquitto-mqtt-broker-to-aws-iot/
+
+Make sure the version of Mosquitto installed on the Pi is 1.4.2. Earlier versions won't work.
+
+```
+$ pi@raspberrypi ~ $ mosquitto -h | grep version
+mosquitto version 1.4.14 (build date Mon, 10 Jul 2017 23:48:43 +0100)
+```
