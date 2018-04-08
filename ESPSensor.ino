@@ -18,9 +18,15 @@ const char pass[] = "password";
 int pinDHT22 = 2;  //GPIO2 is pin 2, GPIO0 is pin 0
 SimpleDHT22 dht22;
 
-int inputLevel = 2;
-unsigned long lastMillis = 0;
-unsigned long delayMillis = 300000;
+unsigned long lastMQTT = 0;
+unsigned long delayMQTT = 300000;
+
+// Print wifi details every 30 seconds for the first 10 minutes
+unsigned long lastInfo = 0;
+unsigned long delayInfo = 30000;
+unsigned long maxInfo = 600000;
+
+bool starting = true;
 
 WiFiClient net;
 MQTTClient client(512);
@@ -33,7 +39,7 @@ void connect() {
   }
   Serial.println("Connected to wifi.");
   Serial.print("Trying MQTT...");
-  while (!client.connect("arduino", "try", "try")) {
+  while (!client.connect("esp1")) {
     Serial.print(".");
     delay(1000);
   }
@@ -67,6 +73,26 @@ void messageReceived(String &topic, String &payload) {
   Serial.println(payload);
 }
 
+void sendWifiDetails() {
+  byte mac[6];
+  char machex[20];
+  WiFi.macAddress(mac);
+  sprintf(machex, "%2X:%2X:%2X:%2X:%2X:%2X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+  IPAddress ip;
+  ip = WiFi.localIP();
+
+  unsigned long cd = (delayMQTT - (millis() - lastMQTT)) / 1000;
+
+  Serial.print("Mac:");
+  Serial.print(machex);
+  Serial.print(" IP:");
+  Serial.print(ip);
+  Serial.print(" time:");
+  Serial.print(cd);
+  Serial.println(" seconds");
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -77,21 +103,29 @@ void setup()
   client.onMessage(messageReceived);
   connect();
   Serial.println("Ready");
-  lastMillis = millis();
+  lastMQTT = 0;
+  lastInfo = 0;
 }
 
 void loop()
 {
   client.loop();
   delay(10);
-  
+
   if (!client.connected()) {
     connect();
+    sendWifiDetails();
   }
-  
-  if (millis() - lastMillis > delayMillis) {
-    lastMillis = millis();
+
+  if (starting || (millis() - lastMQTT > delayMQTT)) {
+    lastMQTT = millis();
     sendReadings();
+    starting = false;
+  }
+
+  if ((millis() < maxInfo) && (millis() - lastInfo > delayInfo)) {
+    lastInfo = millis();
+    sendWifiDetails();
   }
 }
 
