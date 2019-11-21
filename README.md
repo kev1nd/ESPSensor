@@ -10,7 +10,7 @@ Temperature and Humidity are read by a DHT22 module. This is slightly more expen
 
 The curcuit includes a reset button, and also a program button. It is necessary to pull GPIO down during start in order to prepare the ESP for programming. The USB port is used only for programming, since in normal operation all communication is done through wifi.
 
-## Wifi Configudation
+## Wifi Configuration
 The file ssid.h isn't included, because it contains the wifi ssid/password only. It's contents are the same as as the in-line code, except with a valid local ssid/password. This is a simple way of programming a wifi connection, avoiding the need for a web server or serial based configuration. Of course, add your own wifi details.
 
 ```
